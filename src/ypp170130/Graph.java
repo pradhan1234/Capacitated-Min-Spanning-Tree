@@ -7,6 +7,8 @@ import java.util.Scanner;
 
 public class Graph {
 
+    static Vertex root;
+    static int W;
     AdjacencyList[] adjList;
     int V;
     int E;
@@ -19,6 +21,10 @@ public class Graph {
         int V = in.nextInt();
         int E = in.nextInt();
         Graph g = new Graph(V);
+        // this can be changed
+        root = g.getVertex(0);
+        root.size = 0;
+        W = 3;
         for (int i = 0; i < E; i++) {
             int u, v, w;
             u = in.nextInt();
@@ -48,6 +54,21 @@ public class Graph {
         E++;
     }
 
+    public Edge[] getEdgeArray() {
+        Edge[] edges = new Edge[E()];
+        int i = 0;
+        for (AdjacencyList al : adjList) {
+            Vertex u = al.getVertex();
+            for (Edge e : al.edges) {
+                Vertex v = e.getOther(u);
+                if (u.getName() < v.getName()) {
+                    edges[i++] = e;
+                }
+            }
+        }
+        return edges;
+    }
+
     void init(int V) {
         this.V = V;
         this.E = 0;
@@ -61,6 +82,7 @@ public class Graph {
         return adjList[u].u;
     }
 
+
     public void printGraph() {
         System.out.println("______________________________________________");
         System.out.println("Graph: n: " + V() + ", m: " + E());
@@ -68,7 +90,7 @@ public class Graph {
             Vertex u = al.getVertex();
             System.out.print(u + " : ");
             for (Edge e : al.edges) {
-                System.out.print(" " + e + "[" + e.weight + "]");
+                System.out.print(" " + e);
             }
             System.out.println();
         }
@@ -79,9 +101,70 @@ public class Graph {
     // also add properties for MST
     public class Vertex {
         int label;
+        int parent;
+        int weight;
+        // use this for kruskals, insert more fields as needed
+        Vertex representative;
+        boolean isAdjRoot;
+        int size;
 
         public Vertex(int u) {
             label = u;
+            representative = this;
+            size = 1;
+        }
+
+        public Vertex(int u, int w) {
+            this(u);
+            weight = w;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            Vertex otherVertex = (Vertex) other;
+            if (otherVertex == null) {
+                return false;
+            }
+            return this.label == otherVertex.label;
+        }
+
+        public Vertex find() {
+            if (this != this.representative) {
+                this.representative = this.representative.find();
+            }
+            return representative;
+        }
+
+        public boolean union(Vertex v) {
+            Vertex u = this;
+            Vertex repU = u.find();
+            Vertex repV = v.find();
+
+            if (repU == repV) {
+                return false;
+            }
+            if (repU.size + repV.size > W) {
+                return false;
+            }
+            if (u == root && !repV.isAdjRoot) {
+                repV.isAdjRoot = true;
+                return true;
+            }
+            if (v == root && !repU.isAdjRoot) {
+                repU.isAdjRoot = true;
+                return true;
+            }
+            if (u == root || v == root) {
+                return false;
+            }
+            if (repU.size >= repV.size) {
+                repU.size += repV.size;
+                repV.representative = repU;
+            } else {
+                repV.size += repU.size;
+                repU.representative = repV;
+            }
+            return true;
         }
 
         public String toString() {
@@ -169,7 +252,7 @@ public class Graph {
         }
 
         public String toString() {
-            return "(" + from + "," + to + ")";
+            return "(" + from + "," + to + ") [" + weight + "]";
         }
     }
 
