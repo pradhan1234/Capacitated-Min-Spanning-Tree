@@ -1,5 +1,7 @@
 package ypp170130;
 
+import org.omg.PortableServer.AdapterActivator;
+
 import java.util.*;
 
 /**
@@ -55,6 +57,7 @@ public class Main {
             Graph.Vertex u = e.getTo();
             u.elements.add(u);
             u.connectingLink = e;
+            u.defaultLink = e;
 
             wmst += e.weight;
             e.s = Graph.Status.USED;
@@ -78,17 +81,77 @@ public class Main {
         return c1 - c2;
     }
 
+    public static boolean allPositive(Graph g) {
+        for(Graph.AdjacencyList al : g.adjList) {
+            if(al.u == g.root) continue;
+            if(al.u.tradeoff > 0) {
+                continue;
+            }
+            return false;
+        }
+        return true;
+    }
+
     public static int esauWilliams(Graph g) {
         int wmst = initEsauWilliams(g);
-
+        System.out.println("\nWeight: " + wmst);
+        // use a queue/linkedlist start by puttinng 1.. n inside it
+        LinkedList<Graph.Vertex> q = new LinkedList<>();
         for (Graph.AdjacencyList al : g.adjList) {
             Graph.Vertex u = al.getVertex();
             if (u == g.root) continue;
-            Graph.Edge[] e = new Graph.Edge[1];
-            int t = tradeoff(g, u, e);
-            System.out.println("tradeoff " + u + ":" + t + " edge:" + e[0]);
+            q.add(u);
         }
-        System.out.println("\nWeight: " + wmst);
+
+        int i = 1;
+        while(true) {
+            if(allPositive(g)) {
+                break;
+            }
+            System.out.println("iteration:" + i++);
+            int n = q.size();
+            Graph.Vertex minU = null;
+            Graph.Edge selectedE = null;
+            int minTradeoff = Integer.MAX_VALUE;
+            while(n>0) {
+                Graph.Vertex u = q.remove();
+                Graph.Edge[] e = new Graph.Edge[1];
+                u.tradeoff = tradeoff(g, u, e);
+                u.tradeoffEdge = e[0];
+                System.out.println("tradeoff " + u + ": " + u.tradeoff + " edge:" + e[0]);
+                n--;
+            }
+
+            for (Graph.AdjacencyList al : g.adjList) {
+                Graph.Vertex u = al.getVertex();
+                if (u == g.root) continue;
+                if(u.tradeoff < minTradeoff) {
+                    minTradeoff = u.tradeoff;
+                    minU = u;
+                    selectedE = u.tradeoffEdge;
+                }
+            }
+
+            System.out.println("\nMin Tradeoff "+ minU.tradeoff + " edge " + selectedE);
+            Graph.Vertex u, v;
+            u = selectedE.getFrom();
+            v = selectedE.getTo();
+            Graph.Vertex[] updated = new Graph.Vertex[1];
+            if(u.unionEW(v, updated)) {
+                selectedE.s = Graph.Status.USED;
+                q.addAll(u.find().elements);
+                System.out.println("with 0: " + updated[0].defaultLink +" w " + updated[0].defaultLink.weight);
+                wmst = wmst - updated[0].defaultLink.weight + selectedE.weight;
+            } else {
+                selectedE.s = Graph.Status.DISCARD;
+                q.addAll(u.find().elements);
+                q.addAll(v.find().elements);
+            }
+
+
+            System.out.println("\nWeight: " + wmst);
+//            break;
+        }
         return wmst;
     }
 
