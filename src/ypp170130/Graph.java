@@ -1,5 +1,6 @@
 package ypp170130;
 
+import javax.swing.*;
 import java.util.*;
 
 public class Graph {
@@ -109,6 +110,9 @@ public class Graph {
         Set<Vertex> elements = new HashSet<>(); // elements in cluster
         // Vertex adjRoot; // vertex in this cluster, connected to root
         Edge connectingLink; // connecting link to root
+        int tradeoff;
+        Edge tradeoffEdge;
+        Edge defaultLink;
 
         public Vertex(int u) {
             label = u;
@@ -165,6 +169,52 @@ public class Graph {
             } else {
                 repV.size += repU.size;
                 repU.representative = repV;
+            }
+            return true;
+        }
+
+        public boolean unionEW(Vertex v, Vertex[] updated) {
+            Vertex u = this;
+            Vertex repU, repV;
+            repU = u.find();
+            repV = v.find();
+            if (repU == repV) {
+                System.out.println("both rep same");
+                return false;
+            }
+            if (repU.size + repV.size > W) {
+                System.out.println("limit excedd");
+                return false;
+            }
+            if (u == root && !repV.isAdjRoot) {
+                repV.isAdjRoot = true;
+                return true;
+            }
+            if (v == root && !repU.isAdjRoot) {
+                repU.isAdjRoot = true;
+                return true;
+            }
+            if (u == root || v == root) {
+                return false;
+            }
+            if (repU.size >= repV.size) {
+                System.out.println("should be here");
+                repU.size += repV.size;
+                repU.elements.addAll(repV.elements);
+                if(repU.connectingLink.weight > repV.connectingLink.weight) {
+                    repU.connectingLink = repV.connectingLink;
+                }
+                repV.representative = repU;
+                updated[0] = v;
+            } else {
+                System.out.println("or here");
+                repV.size += repU.size;
+                repV.elements.addAll(repU.elements);
+                if(repV.connectingLink.weight > repU.connectingLink.weight) {
+                    repV.connectingLink = repU.connectingLink;
+                }
+                repU.representative = repV;
+                updated[0] = v;
             }
             return true;
         }
