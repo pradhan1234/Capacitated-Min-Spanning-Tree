@@ -1,13 +1,10 @@
 package ypp170130;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public class Graph {
 
-    static Vertex root;
+    Vertex root;
     static int W;
     AdjacencyList[] adjList;
     int V;
@@ -15,6 +12,8 @@ public class Graph {
 
     public Graph(int n) {
         init(n);
+        root = this.getVertex(0);
+        root.size = 0;
     }
 
     public static Graph construct(Scanner in) {
@@ -22,8 +21,6 @@ public class Graph {
         int E = in.nextInt();
         Graph g = new Graph(V);
         // this can be changed
-        root = g.getVertex(0);
-        root.size = 0;
         W = 3;
         for (int i = 0; i < E; i++) {
             int u, v, w;
@@ -107,6 +104,11 @@ public class Graph {
         Vertex representative;
         boolean isAdjRoot;
         int size;
+
+        // williams
+        Set<Vertex> elements = new HashSet<>(); // elements in cluster
+        // Vertex adjRoot; // vertex in this cluster, connected to root
+        Edge connectingLink; // connecting link to root
 
         public Vertex(int u) {
             label = u;
@@ -192,12 +194,14 @@ public class Graph {
         Vertex to;
         int weight;
         int label;
+        Status s;
 
         public Edge(Vertex u, Vertex v, int w, int e) {
             from = u;
             to = v;
             weight = w;
             label = e;
+            s = Status.UNPROCESSED;
         }
 
         public Vertex getFrom() {
@@ -268,5 +272,13 @@ public class Graph {
         public Vertex getVertex() {
             return u;
         }
+
+
+    }
+
+    public enum Status {
+        USED, // included
+        DISCARD, // rejected
+        UNPROCESSED // unvisited
     }
 }
