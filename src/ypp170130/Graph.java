@@ -235,9 +235,8 @@ public class Graph {
             Vertex u = this;
             Vertex repU = u.find();
             Vertex repV = v.find();
-
             // already in same cluster
-            if (repU == repV) {
+            if ((repU == repV) || (repU.isAdjRoot && repV.isAdjRoot)) {
                 return false;
             }
             // constraint violation
@@ -261,9 +260,15 @@ public class Graph {
             if (repU.size >= repV.size) {
                 repU.size += repV.size;
                 repV.representative = repU;
+                if(repV.isAdjRoot) {
+                    repU.isAdjRoot = true;
+                }
             } else {
                 repV.size += repU.size;
                 repU.representative = repV;
+                if(repU.isAdjRoot) {
+                    repV.isAdjRoot = true;
+                }
             }
             return true;
         }
@@ -282,7 +287,7 @@ public class Graph {
             repU = u.find();
             repV = v.find();
             // already in same cluster
-            if (repU == repV) {
+            if ((repU == repV) || (repU.isAdjRoot && repV.isAdjRoot)) {
                 return false;
             }
             // constraint violation
@@ -311,6 +316,9 @@ public class Graph {
                     repU.connectingLink = repV.connectingLink;
                 }
                 repV.representative = repU;
+                if(repV.isAdjRoot) {
+                    repU.isAdjRoot = true;
+                }
                 updated[0] = v;
             } else {
                 repV.size += repU.size;
@@ -320,6 +328,9 @@ public class Graph {
                     repV.connectingLink = repU.connectingLink;
                 }
                 repU.representative = repV;
+                if(repU.isAdjRoot) {
+                    repV.isAdjRoot = true;
+                }
                 updated[0] = v; // is this correct?
             }
             return true;
