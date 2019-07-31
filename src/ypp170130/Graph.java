@@ -3,23 +3,26 @@ package ypp170130;
 import java.util.*;
 
 /**
+ * author: yash pradhan (ypp170130)
+ *
  * Graph contains Vertex, Edges and Adjacency List as inner classes
  * Uses Adjacency List representation for Graph
+ * Has sufficient fields for book-keeping required for executing modified kruskal's and esau williams.
  */
-public class Graph {
+class Graph {
 
-    static int W; // constraint
-    Vertex root; // cenntral hub
+    private static int W; // constraint
+    Vertex root; // central hub
     AdjacencyList[] adjList;
-    int V;  // number of vertices
-    int E;  // number of edges
+    private int V;  // number of vertices
+    private int E;  // number of edges
 
     /**
      * Constructor: creates empty graph with n vertices, sets Vertex 0 as root
      *
      * @param n number of vertices
      */
-    public Graph(int n) {
+    private Graph(int n) {
         init(n);
         root = this.getVertex(0);
         root.size = 0;
@@ -31,13 +34,13 @@ public class Graph {
      * @param in represents input graph
      * @return instance of Graph, created from `in`
      */
-    public static Graph construct(Scanner in) {
+    static Graph construct(Scanner in) {
         int V = in.nextInt();
         int E = in.nextInt();
         // call default constructor
         Graph g = new Graph(V);
         // set constraint
-        W = 3;
+        W = in.nextInt();
         // add E edges
         for (int i = 0; i < E; i++) {
             int u, v, w;
@@ -53,7 +56,7 @@ public class Graph {
      * @param u Vertex whose edges would be returned
      * @return adjacency list of u
      */
-    public AdjacencyList getAdjacencyList(Vertex u) {
+    private AdjacencyList getAdjacencyList(Vertex u) {
         return adjList[u.getIndex()];
     }
 
@@ -62,7 +65,7 @@ public class Graph {
      *
      * @return number of vertices
      */
-    public int V() {
+    int V() {
         return V;
     }
 
@@ -71,7 +74,7 @@ public class Graph {
      *
      * @return number of edges
      */
-    public int E() {
+    private int E() {
         return E;
     }
 
@@ -83,7 +86,7 @@ public class Graph {
      * @param w weight/cost
      * @param i index/label for edge (unique)
      */
-    public void addEdge(Vertex u, Vertex v, int w, int i) {
+    private void addEdge(Vertex u, Vertex v, int w, int i) {
         Edge e = new Edge(u, v, w, i);
         getAdjacencyList(u).edges.add(e);
         getAdjacencyList(v).edges.add(e);
@@ -96,7 +99,7 @@ public class Graph {
      *
      * @return edge array containing all edges in graph
      */
-    public Edge[] getEdgeArray() {
+    Edge[] getEdgeArray() {
         Edge[] edges = new Edge[E()];
         int i = 0;
         for (AdjacencyList al : adjList) {
@@ -117,7 +120,7 @@ public class Graph {
      *
      * @param V number of vertices
      */
-    void init(int V) {
+    private void init(int V) {
         this.V = V;
         this.E = 0;
         adjList = new AdjacencyList[V];
@@ -130,14 +133,14 @@ public class Graph {
      * @param u index at which, vertex is returned
      * @return vertex at index u
      */
-    public Vertex getVertex(int u) {
+    private Vertex getVertex(int u) {
         return adjList[u].u;
     }
 
     /**
      * prints the graph
      */
-    public void printGraph() {
+    void printGraph() {
         System.out.println("______________________________________________");
         System.out.println("Graph: n: " + V() + ", m: " + E());
         for (AdjacencyList al : adjList) {
@@ -162,15 +165,18 @@ public class Graph {
 
     /**
      * Represents Vertex in graph
-     * Contains fields used by kruskals and esau-williams
+     * Contains fields used by kruskal's and esau-williams in WMST.
+     * Also defines union() and find() for both of these algorithms.
      */
     public class Vertex {
         int label; // identifier for vertex
         int weight;
+
         // used in union find algorithm
         Vertex representative; // cluster leader
         boolean isAdjRoot; // set to true if it has connecting link
         int size; // size of cluster, cluster representative maintains this
+
         // used in esau williams
         Set<Vertex> elements = new HashSet<>(); // elements in cluster
         Edge connectingLink; // connecting link to root of this cluster
@@ -183,7 +189,7 @@ public class Graph {
          *
          * @param u identifier for vertex
          */
-        public Vertex(int u) {
+        Vertex(int u) {
             label = u;
             // initially each node is independent
             representative = this;
@@ -217,7 +223,7 @@ public class Graph {
          *
          * @return representative of this vertex
          */
-        public Vertex find() {
+        Vertex find() {
             if (this != this.representative) {
                 this.representative = this.representative.find();
             }
@@ -231,16 +237,18 @@ public class Graph {
          * @param v vertex with which union is to be performed
          * @return true if success, false otherwise
          */
-        public boolean union(Vertex v) {
+        boolean union(Vertex v) {
             Vertex u = this;
             Vertex repU = u.find();
             Vertex repV = v.find();
             // already in same cluster
             if ((repU == repV) || (repU.isAdjRoot && repV.isAdjRoot)) {
+                WMST.print(": reject, already connected");
                 return false;
             }
             // constraint violation
             if (repU.size + repV.size > W) {
+                WMST.print(": constraint violation");
                 return false;
             }
             // handle connections with root
@@ -253,6 +261,7 @@ public class Graph {
                 return true;
             }
             if (u == root || v == root) {
+                WMST.print(": reject, already connected");
                 return false;
             }
             // smaller cluster unions under larger one
@@ -260,13 +269,13 @@ public class Graph {
             if (repU.size >= repV.size) {
                 repU.size += repV.size;
                 repV.representative = repU;
-                if(repV.isAdjRoot) {
+                if (repV.isAdjRoot) {
                     repU.isAdjRoot = true;
                 }
             } else {
                 repV.size += repU.size;
                 repU.representative = repV;
-                if(repU.isAdjRoot) {
+                if (repU.isAdjRoot) {
                     repV.isAdjRoot = true;
                 }
             }
@@ -275,23 +284,25 @@ public class Graph {
 
         /**
          * Similar to union() but does additional work
-         * Used byb esau williams
+         * Used by esau williams
          *
          * @param v       vertex with which union is performed
          * @param updated wrapper to vertex whose tradeoff needs to be recomputed
          * @return true on success, false otherwise
          */
-        public boolean unionEW(Vertex v, Vertex[] updated) {
+        boolean unionEW(Vertex v, Vertex[] updated) {
             Vertex u = this;
             Vertex repU, repV;
             repU = u.find();
             repV = v.find();
             // already in same cluster
             if ((repU == repV) || (repU.isAdjRoot && repV.isAdjRoot)) {
+                WMST.print("\nalready connected");
                 return false;
             }
             // constraint violation
             if (repU.size + repV.size > W) {
+                WMST.print("\nconstraint violation");
                 return false;
             }
             // handle connection with root
@@ -304,6 +315,7 @@ public class Graph {
                 return true;
             }
             if (u == root || v == root) {
+                WMST.print("\nalready connected");
                 return false;
             }
             // smaller cluster unions under larger one
@@ -316,7 +328,7 @@ public class Graph {
                     repU.connectingLink = repV.connectingLink;
                 }
                 repV.representative = repU;
-                if(repV.isAdjRoot) {
+                if (repV.isAdjRoot) {
                     repU.isAdjRoot = true;
                 }
                 updated[0] = v;
@@ -328,10 +340,10 @@ public class Graph {
                     repV.connectingLink = repU.connectingLink;
                 }
                 repU.representative = repV;
-                if(repU.isAdjRoot) {
+                if (repU.isAdjRoot) {
                     repV.isAdjRoot = true;
                 }
-                updated[0] = v; // is this correct?
+                updated[0] = v;
             }
             return true;
         }
@@ -354,20 +366,21 @@ public class Graph {
         /**
          * @return name/label of vertex
          */
-        public int getName() {
+        int getName() {
             return label;
         }
 
         /**
          * @return index of vertex
          */
-        public int getIndex() {
+        int getIndex() {
             return getName();
         }
     }
 
     /**
      * Edge Class: represents edge in graph
+     * Contains fields as specified below.
      */
     public class Edge implements Comparable<Edge> {
         Vertex from; // tail end of edge
@@ -382,7 +395,7 @@ public class Graph {
          * @param w weight
          * @param e label
          */
-        public Edge(Vertex u, Vertex v, int w, int e) {
+        Edge(Vertex u, Vertex v, int w, int e) {
             from = u;
             to = v;
             weight = w;
@@ -393,28 +406,28 @@ public class Graph {
         /**
          * @return from vertex of edge
          */
-        public Vertex getFrom() {
+        Vertex getFrom() {
             return from;
         }
 
         /**
          * @return to vertex of edge
          */
-        public Vertex getTo() {
+        Vertex getTo() {
             return to;
         }
 
         /**
          * @return weight of edge
          */
-        public int getWeight() {
+        int getWeight() {
             return weight;
         }
 
         /**
          * @return label of edge
          */
-        public int getLabel() {
+        int getLabel() {
             return label;
         }
 
@@ -422,7 +435,7 @@ public class Graph {
          * @param u vertex on one end of edge
          * @return vertex on other end of edge
          */
-        public Vertex getOther(Vertex u) {
+        Vertex getOther(Vertex u) {
             if (from.equals(u)) {
                 return to;
             } else {
@@ -433,8 +446,8 @@ public class Graph {
         /**
          * Edge is same if has same labels and connects same pair of vertices
          *
-         * @param o
-         * @return
+         * @param o other edge
+         * @return true is this edge and other edge are equal, false otherwise
          */
         @Override
         public boolean equals(Object o) {
@@ -463,13 +476,7 @@ public class Graph {
          */
         @Override
         public int compareTo(Edge o) {
-            if (weight > o.weight) {
-                return 1;
-            } else if (weight < o.weight) {
-                return -1;
-            } else {
-                return 0;
-            }
+            return Integer.compare(weight, o.weight);
         }
 
         /**
@@ -481,10 +488,10 @@ public class Graph {
     }
 
     /**
-     * Used for representation of graph
+     * Adjacency List: Used for representation of graph
      * Each instance has a Vertex and list of Edges
      */
-    public class AdjacencyList {
+    class AdjacencyList {
         Vertex u;
         List<Edge> edges;
 
@@ -493,7 +500,7 @@ public class Graph {
          *
          * @param u vertex
          */
-        public AdjacencyList(int u) {
+        AdjacencyList(int u) {
             this.u = new Vertex(u);
             edges = new LinkedList<>();
         }
@@ -501,10 +508,8 @@ public class Graph {
         /**
          * @return vertex corresponding to adjacency list
          */
-        public Vertex getVertex() {
+        Vertex getVertex() {
             return u;
         }
-
-
     }
 }
