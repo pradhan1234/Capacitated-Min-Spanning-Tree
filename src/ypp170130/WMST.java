@@ -4,19 +4,20 @@ import java.util.*;
 
 /**
  * author: yash pradhan (ypp170130)
- *
+ * <p>
  * WMST class for computing Capacitated Minimum Weight Spanning Tree using
  * 1. Modified Kruskal's Algorithm
- * 2. Esau Williams Heuristic
+ * 2. Esau Williams Heuristics
  */
 public class WMST {
 
     private static boolean printSteps;
     // to keep track for edges in mst
-    private static Set<Graph.Edge> mstEdges = new HashSet<>();
+    private static Set<Graph.Edge> mstEdges;
 
     /**
      * routine to print steps of algorithm
+     *
      * @param s message
      */
     static void print(String s) {
@@ -31,6 +32,7 @@ public class WMST {
      * @return weight of the minimum spanning tree
      */
     private static int wmstModifiedKruskals(Graph g) {
+        mstEdges = new HashSet<>();
         int wmst = 0;
         Graph.Edge[] edges = g.getEdgeArray();
         List<Graph.Edge> result = new ArrayList<>();
@@ -81,6 +83,7 @@ public class WMST {
      * @return weight of the minimum spanning tree
      */
     private static int initEsauWilliams(Graph g) {
+        mstEdges = new HashSet<>();
         // sort edges of each vertex in graph
         for (Graph.AdjacencyList al : g.adjList) {
             List<Graph.Edge> edgeList = al.edges;
@@ -234,27 +237,29 @@ public class WMST {
 
     /**
      * Driver Code
-     *
+     * <p>
      * printSteps: set true if you want detailed execution
-     * by default, in following code I have set it true for sample graph and then set it to false.
-     *
-     *
+     * in following code it true for sample graph and then set it false.
      */
     public static void main(String[] args) {
-        printSteps = true;
-        // write your code here
         String s1 = "6 15 3   1 3 3   1 2 4   0 1 5   2 4 5   0 2 6   3 4 6   3 5 6   4 5 7   2 3 8    1 4 8   0 3 9  1 5 10  0 4 12  2 5 12  0 5 15";
         String s2 = "7 21 3   0 1 5   0 2 6   0 3 9   0 4 10  0 5 11  0 6 15  1 2 9   1 3 6   1 4 6   1 5 8   1 6 17  2 3 7   2 4 9   2 5 8   2 6 12      3 4 10  3 5 5   3 6 11  4 5 14  4 6 9   5 6 8";
         String s3 = "7 21 3   0 1 2   0 2 10   0 3 10   0 4 2  0 5 10  0 6 10  1 2 1   1 3 10   1 4 10   1 5 10   1 6 10   2 3 1   2 4 10   2 5 10   2 6 10      3 4 10  3 5 10   3 6 10  4 5 1  4 6 10   5 6 1";
+        String s4 = "6 15 3   1 3 35   1 2 42   0 1 55   2 4 55   0 2 62   3 4 63   3 5 65   4 5 70   2 3 85    1 4 88   0 3 95  1 5 100  0 4 125  2 5 130  0 5 150";
+        String[] strs = new String[]{s1, s2, s3, s4};
 
-        String s = s1;
-        Graph g1 = Graph.construct(new Scanner(s));
-        g1.printGraph();
-        System.out.println("\nModified Kruskals Algorithm\n");
-        wmstModifiedKruskals(g1);
+        printSteps = true;
+        for (String s : strs) {
+            Graph g1 = Graph.construct(new Scanner(s));
+            g1.printGraph();
+            System.out.println("\nModified Kruskals Algorithm\n");
+            wmstModifiedKruskals(g1);
 
-        System.out.println("\nEsau Williams Algorithm\n");
-        Graph g = Graph.construct(new Scanner(s));
-        esauWilliams(g);
+            System.out.println("\nEsau Williams Heuristic\n");
+            Graph g2 = Graph.construct(new Scanner(s));
+            esauWilliams(g2);
+
+            printSteps = false;
+        }
     }
 }
