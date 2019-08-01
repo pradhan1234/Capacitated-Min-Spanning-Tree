@@ -4,7 +4,7 @@ import java.util.*;
 
 /**
  * author: yash pradhan (ypp170130)
- *
+ * <p>
  * Graph contains Vertex, Edges and Adjacency List as inner classes
  * Uses Adjacency List representation for Graph
  * Has sufficient fields for book-keeping required for executing modified kruskal's and esau williams.
@@ -133,7 +133,7 @@ class Graph {
      * @param u index at which, vertex is returned
      * @return vertex at index u
      */
-    private Vertex getVertex(int u) {
+    public Vertex getVertex(int u) {
         return adjList[u].u;
     }
 
@@ -231,7 +231,7 @@ class Graph {
         }
 
         /**
-         * does union of vertex 'this' and v if possible, return true if success
+         * unions vertex 'this' and v if possible, return true if success
          * returns false otherwise
          *
          * @param v vertex with which union is to be performed
@@ -328,6 +328,7 @@ class Graph {
                     repU.connectingLink = repV.connectingLink;
                 }
                 repV.representative = repU;
+                // if comp(v) is connected to root, save this for comp(u)
                 if (repV.isAdjRoot) {
                     repU.isAdjRoot = true;
                 }
@@ -340,6 +341,7 @@ class Graph {
                     repV.connectingLink = repU.connectingLink;
                 }
                 repU.representative = repV;
+                // if comp(u) is connected to root, save this for comp(v)
                 if (repU.isAdjRoot) {
                     repV.isAdjRoot = true;
                 }
