@@ -1,4 +1,4 @@
-# atn-hw6
+# Capacitated Minimum Spanning Tree
 
 Implement the CMST problem.
 
